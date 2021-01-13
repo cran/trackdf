@@ -4,17 +4,17 @@
 \alias{track_}
 \alias{track}
 \alias{track_tbl}
-\alias{track_df}
 \alias{track_dt}
+\alias{track_df}
 \title{Build a Track Table}
 \usage{
-track(x, y, z, t, id, ..., proj, origin, period, tz, table = "df")
+track(x, y, z, t, id, ..., proj, origin, period, tz, format, table = "df")
 
-track_df(x, y, z, t, id, ..., proj, origin, period, tz)
+track_df(x, y, z, t, id, ..., proj, origin, period, tz, format)
 
-track_tbl(x, y, z, t, id, ..., proj, origin, period, tz)
+track_tbl(x, y, z, t, id, ..., proj, origin, period, tz, format)
 
-track_dt(x, y, z, t, id, ..., proj, origin, period, tz)
+track_dt(x, y, z, t, id, ..., proj, origin, period, tz, format)
 }
 \arguments{
 \item{x, y, z}{Numeric vectors representing the coordinates of the locations.
@@ -24,7 +24,7 @@ length, the shorter ones will be recycled to match the length of the longer
 one.}
 
 \item{t}{A numeric vector or a vector of objects that can be coerced to
-date-time objects by \code{link[lubridate]{as_datetime}} representing the
+date-time objects by \code{\link[lubridate]{as_datetime}} representing the
 times (or frames) at which each location was recorded. If numeric, the
 origin and period of the time points can be set using \code{origin} and
 \code{period} below.}
@@ -42,10 +42,10 @@ create columns that start with a dot.}
 \item{proj}{A character string or a \code{\link[sp:CRS]{sp::CRS}} object
 representing the projection of the coordinates. Leave empty if the
 coordinates are not projected (e.g., output of video tracking).
-\code{"+proj=longlat"} is suitable for the outputs of most GPS trackers.}
+\code{"+proj=longlat"} is suitable for the output of most GPS trackers.}
 
 \item{origin}{Something that can be coerced to a date-time object by
-\code{link[lubridate]{as_datetime}} representing the start date and time of
+\code{\link[lubridate]{as_datetime}} representing the start date and time of
 the observations when \code{t} is a numeric vector.}
 
 \item{period}{A character vector in a shorthand format (e.g. "1 second") or
@@ -57,6 +57,11 @@ supported but the fractional part is always converted to seconds. See
 \code{\link[lubridate]{period}} for more details.}
 
 \item{tz}{A time zone name. See \code{\link{OlsonNames}}.}
+
+\item{format}{A character string indicating the formatting of `t`. See
+ \code{\link{strptime}} for how to specify this parameter.
+
+When supplied parsing is performed by strptime(). For this reason consider using specialized parsing functions in lubridate.}
 
 \item{table}{A string indicating the class of the table on which the track
 table should be built. It can be a \code{\link{data.frame}} ("df", the default),
@@ -78,19 +83,19 @@ A track table, which is a colloquial term for an object of class
  automatically trigger the appropriate conversion of the coordinates.
 }
 \examples{
-data(tracks)
+data(short_tracks)
 
-t_df <- track(x = tracks$x, y = tracks$y, t = tracks$t, id = tracks$id,
-  proj = "+proj=longlat", tz = "Africa/Windhoek", table = "df")
+t_df <- track(x = short_tracks$x, y = short_tracks$y, t = short_tracks$t,
+  id = short_tracks$id, proj = "+proj=longlat", tz = "Africa/Windhoek", table = "df")
 
-t_df <- track_df(x = tracks$x, y = tracks$y, t = tracks$t, id = tracks$id,
-  proj = "+proj=longlat", tz = "Africa/Windhoek")
+t_df <- track_df(x = short_tracks$x, y = short_tracks$y, t = short_tracks$t,
+  id = short_tracks$id, proj = "+proj=longlat", tz = "Africa/Windhoek")
 
-t_tbl <- track_tbl(x = tracks$x, y = tracks$y, t = tracks$t, id = tracks$id,
-  proj = "+proj=longlat", tz = "Africa/Windhoek")
+t_tbl <- track_tbl(x = short_tracks$x, y = short_tracks$y, t = short_tracks$t,
+id = short_tracks$id, proj = "+proj=longlat", tz = "Africa/Windhoek")
 
-t_dt <- track_dt(x = tracks$x, y = tracks$y, t = tracks$t, id = tracks$id,
-  proj = "+proj=longlat", tz = "Africa/Windhoek")
+t_dt <- track_dt(x = short_tracks$x, y = short_tracks$y, t = short_tracks$t,
+  id = short_tracks$id, proj = "+proj=longlat", tz = "Africa/Windhoek")
 
 }
 \author{

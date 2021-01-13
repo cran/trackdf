@@ -1,4 +1,4 @@
-.track <- function(x, y, z, t, id, proj, origin, period, tz) {
+.track <- function(x, y, z, t, id, proj, origin, period, tz, format) {
   if (!is.numeric(x))
     stop("x must be an object of class numeric.")
 
@@ -13,11 +13,16 @@
   if (!lubridate::is.POSIXct(t)) {
     if (is.numeric(t)) {
       if (!missing(origin)) {
-        origin <- tryCatch(lubridate::as_datetime(origin, tz = tz), error = function(e) {
-          e$call <- "track_df(..., origin)"
-          e$message <- "Invalid origin format."
-          stop(e)
-        })
+        origin <- tryCatch(
+          if (missing(format))
+            lubridate::as_datetime(origin, tz = tz)
+          else
+            lubridate::as_datetime(origin, tz = tz, format = format),
+          error = function(e) {
+            e$call <- "track_df(..., origin)"
+            e$message <- "Invalid origin format."
+            stop(e)
+          })
       } else {
         message("No origin provided. Defaulting to Sys.time().")
         origin <- Sys.time()
@@ -34,12 +39,21 @@
         period <- lubridate::period("1 second")
       }
 
-      t <- lubridate::as_datetime(t * period, origin = origin, tz = tz)
+      t <- if (missing(format))
+        lubridate::as_datetime(t * period, origin = origin, tz = tz)
+      else
+        lubridate::as_datetime(t * period, origin = origin, tz = tz, format = format)
     } else {
-      t <- lubridate::as_datetime(t, tz = tz)
+      t <- if (missing(format))
+        lubridate::as_datetime(t, tz = tz)
+      else
+        lubridate::as_datetime(t, tz = tz, format = format)
     }
   } else {
-    t <- lubridate::as_datetime(t, tz = tz)
+    t <- if (missing(format))
+      lubridate::as_datetime(t, tz = tz)
+    else
+      lubridate::as_datetime(t, tz = tz, format = format)
   }
 
   if (!missing(id)) {
@@ -99,7 +113,7 @@
 #'  one.
 #'
 #' @param t A numeric vector or a vector of objects that can be coerced to
-#'  date-time objects by \code{link[lubridate]{as_datetime}} representing the
+#'  date-time objects by \code{\link[lubridate]{as_datetime}} representing the
 #'  times (or frames) at which each location was recorded. If numeric, the
 #'  origin and period of the time points can be set using \code{origin} and
 #'  \code{period} below.
@@ -117,10 +131,10 @@
 #' @param proj A character string or a \code{\link[sp:CRS]{sp::CRS}} object
 #'  representing the projection of the coordinates. Leave empty if the
 #'  coordinates are not projected (e.g., output of video tracking).
-#'  \code{"+proj=longlat"} is suitable for the outputs of most GPS trackers.
+#'  \code{"+proj=longlat"} is suitable for the output of most GPS trackers.
 #'
 #' @param origin Something that can be coerced to a date-time object by
-#'  \code{link[lubridate]{as_datetime}} representing the start date and time of
+#'  \code{\link[lubridate]{as_datetime}} representing the start date and time of
 #'  the observations when \code{t} is a numeric vector.
 #'
 #' @param period A character vector in a shorthand format (e.g. "1 second") or
@@ -133,6 +147,11 @@
 #'
 #' @param tz A time zone name. See \code{\link{OlsonNames}}.
 #'
+#' @param format A character string indicating the formatting of `t`. See
+#'  \code{\link{strptime}} for how to specify this parameter.
+#'
+#' When supplied parsing is performed by strptime(). For this reason consider using specialized parsing functions in lubridate.
+#'
 #' @param table A string indicating the class of the table on which the track
 #'  table should be built. It can be a \code{\link{data.frame}} ("df", the default),
 #'  a \code{\link[tibble]{tibble}} ("tbl"), or a \code{\link[data.table]{data.table}}
@@ -144,46 +163,46 @@
 #' @author Simon Garnier, \email{garnier@@njit.edu}
 #'
 #' @examples
-#' data(tracks)
+#' data(short_tracks)
 #'
-#' t_df <- track(x = tracks$x, y = tracks$y, t = tracks$t, id = tracks$id,
-#'   proj = "+proj=longlat", tz = "Africa/Windhoek", table = "df")
+#' t_df <- track(x = short_tracks$x, y = short_tracks$y, t = short_tracks$t,
+#'   id = short_tracks$id, proj = "+proj=longlat", tz = "Africa/Windhoek", table = "df")
 #'
-#' t_df <- track_df(x = tracks$x, y = tracks$y, t = tracks$t, id = tracks$id,
-#'   proj = "+proj=longlat", tz = "Africa/Windhoek")
+#' t_df <- track_df(x = short_tracks$x, y = short_tracks$y, t = short_tracks$t,
+#'   id = short_tracks$id, proj = "+proj=longlat", tz = "Africa/Windhoek")
 #'
-#' t_tbl <- track_tbl(x = tracks$x, y = tracks$y, t = tracks$t, id = tracks$id,
-#'   proj = "+proj=longlat", tz = "Africa/Windhoek")
+#' t_tbl <- track_tbl(x = short_tracks$x, y = short_tracks$y, t = short_tracks$t,
+#' id = short_tracks$id, proj = "+proj=longlat", tz = "Africa/Windhoek")
 #'
-#' t_dt <- track_dt(x = tracks$x, y = tracks$y, t = tracks$t, id = tracks$id,
-#'   proj = "+proj=longlat", tz = "Africa/Windhoek")
+#' t_dt <- track_dt(x = short_tracks$x, y = short_tracks$y, t = short_tracks$t,
+#'   id = short_tracks$id, proj = "+proj=longlat", tz = "Africa/Windhoek")
 #'
 #' @rdname track_
 #'
 #' @export
-track <- function(x, y, z, t, id, ..., proj, origin, period, tz, table = "df") {
+track <- function(x, y, z, t, id, ..., proj, origin, period, tz, format, table = "df") {
   switch(table,
-    "df" = track_df(x = x, y = y, z = z, t = t, id = id, ..., proj = proj,
-                    origin = origin, period = period, tz = tz),
-    "tbl" = track_tbl(x = x, y = y, z = z, t = t, id = id, ..., proj = proj,
-                      origin = origin, period = period, tz = tz),
-    "dt" = track_dt(x = x, y = y, z = z, t = t, id = id, ..., proj = proj,
-                    origin = origin, period = period, tz = tz),
-    stop("Unknown table type.")
+         "df" = track_df(x = x, y = y, z = z, t = t, id = id, ..., proj = proj,
+                         origin = origin, period = period, tz = tz, format = format),
+         "tbl" = track_tbl(x = x, y = y, z = z, t = t, id = id, ..., proj = proj,
+                           origin = origin, period = period, tz = tz, format = format),
+         "dt" = track_dt(x = x, y = y, z = z, t = t, id = id, ..., proj = proj,
+                         origin = origin, period = period, tz = tz, format = format),
+         stop("Unknown table type.")
   )
 }
 
 #' @rdname track_
 #'
 #' @export
-track_df <- function(x, y, z, t, id, ..., proj, origin, period, tz) {
-  l <- .track(x, y, z, t, id, proj, origin, period, tz)
+track_df <- function(x, y, z, t, id, ..., proj, origin, period, tz, format) {
+  l <- .track(x, y, z, t, id, proj, origin, period, tz, format)
   out <- as.data.frame(l[names(l) != "proj"], stringsAsFactors = FALSE)
 
   args <- list(...)
   if (length(args) > 0) {
     var <- names(args)
-    for (i in length(var)) {
+    for (i in 1:length(var)) {
       out[[var[[i]]]] <- args[[var[[i]]]]
     }
   }
@@ -196,14 +215,14 @@ track_df <- function(x, y, z, t, id, ..., proj, origin, period, tz) {
 #' @rdname track_
 #'
 #' @export
-track_tbl <- function(x, y, z, t, id, ..., proj, origin, period, tz) {
-  l <- .track(x, y, z, t, id, proj, origin, period, tz)
+track_tbl <- function(x, y, z, t, id, ..., proj, origin, period, tz, format) {
+  l <- .track(x, y, z, t, id, proj, origin, period, tz, format)
   out <- tibble::as_tibble(l[names(l) != "proj"])
 
   args <- list(...)
   if (length(args) > 0) {
     var <- names(args)
-    for (i in length(var)) {
+    for (i in 1:length(var)) {
       out[[var[[i]]]] <- args[[var[[i]]]]
     }
   }
@@ -216,14 +235,14 @@ track_tbl <- function(x, y, z, t, id, ..., proj, origin, period, tz) {
 #' @rdname track_
 #'
 #' @export
-track_dt <- function(x, y, z, t, id, ..., proj, origin, period, tz) {
-  l <- .track(x, y, z, t, id, proj, origin, period, tz)
+track_dt <- function(x, y, z, t, id, ..., proj, origin, period, tz, format) {
+  l <- .track(x, y, z, t, id, proj, origin, period, tz, format)
   out <- data.table::as.data.table(l[names(l) != "proj"])
 
   args <- list(...)
   if (length(args) > 0) {
     var <- names(args)
-    for (i in length(var)) {
+    for (i in 1:length(var)) {
       out[[var[[i]]]] <- args[[var[[i]]]]
     }
   }
@@ -249,9 +268,9 @@ track_dt <- function(x, y, z, t, id, ..., proj, origin, period, tz) {
 #' @seealso \code{\link{track_df}}, \code{\link{track_tbl}}, \code{\link{track_dt}}
 #'
 #' @examples
-#' data(tracks)
+#' data(short_tracks)
 #'
-#' is_track(tracks)
+#' is_track(short_tracks)
 #'
 #' @export
 is_track <- function(x) {
@@ -323,13 +342,13 @@ print.track <- function(x, ...) {
 #' @seealso \code{\link{track_df}}, \code{\link{track_tbl}}, \code{\link{track_dt}}
 #'
 #' @examples
-#' data(tracks)
+#' data(short_tracks)
 #'
-#' tracks[1]
-#' tracks[1, ]
-#' tracks[1, 1]
-#' tracks$id[tracks$id == "1"] <- "0"
-#' tracks[tracks[, 1] == "0", 1] <- "1"
+#' short_tracks[1]
+#' short_tracks[1, ]
+#' short_tracks[1, 1]
+#' short_tracks$id[short_tracks$id == "1"] <- "0"
+#' short_tracks[short_tracks[, 1] == "0", 1] <- "1"
 #'
 #' @export
 `[.track` <- function(x, ...) {
@@ -376,10 +395,10 @@ print.track <- function(x, ...) {
 #' @author Simon Garnier, \email{garnier@@njit.edu}
 #'
 #' @examples
-#' data(tracks)
+#' data(short_tracks)
 #'
-#' rbind_track(tracks, tracks)
-#' rbind_track(list(tracks, tracks))
+#' rbind_track(short_tracks, short_tracks)
+#' rbind_track(list(short_tracks, short_tracks))
 #'
 #' @export
 rbind_track <- function(...) {

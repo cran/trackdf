@@ -1,3 +1,17 @@
+# trackdf 0.2.2
+
+## New features
+
+N/A
+
+## Minor improvements and fixes
+
+* Fixes issue preventing from adding more than 1 extra column during the creation
+of a track. 
+* Adds possibility to provide date formatting when creating a track. 
+
+---
+
 # trackdf 0.2.1
 
 ## New features
