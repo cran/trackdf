@@ -1,4 +1,5 @@
 #' @importFrom methods as
+#' @importFrom sf st_crs
 #'
 #' @title Convert a Track Table to/from Other Formats
 #'
@@ -42,6 +43,7 @@
 #' @seealso \code{\link{track_df}}, \code{\link{track_tbl}}, \code{\link{track_dt}}
 #'
 #' @examples
+#' \dontrun{
 #' data(short_tracks)
 #'
 #' if (requireNamespace("moveVis", quietly = TRUE)) {
@@ -68,6 +70,7 @@
 #'   hhm <- as_moveHMM(short_tracks, type = "LL")
 #'   as_track(hhm)
 #' }
+#' }
 #'
 #' @rdname conversions
 #'
@@ -87,13 +90,13 @@ as_track.MoveStack <- function(x, table = "df", ...) {
 
   if (table == "df") {
     track_df(x = x_df$x, y = x_df$y, t = x_df$time, id = x_df$trackId, ...,
-             proj = x@proj4string, tz = lubridate::tz(x_df$time))
+             proj = sf::st_crs(x@proj4string), tz = lubridate::tz(x_df$time))
   } else if (table == "tbl") {
     track_tbl(x = x_df$x, y = x_df$y, t = x_df$time, id = x_df$trackId, ...,
-              proj = x@proj4string, tz = lubridate::tz(x_df$time))
+              proj = sf::st_crs(x@proj4string), tz = lubridate::tz(x_df$time))
   } else if (table == "dt") {
     track_dt(x = x_df$x, y = x_df$y, t = x_df$time, id = x_df$trackId, ...,
-             proj = x@proj4string, tz = lubridate::tz(x_df$time))
+             proj = sf::st_crs(x@proj4string), tz = lubridate::tz(x_df$time))
   } else {
     stop("Invalid table type.")
   }
@@ -107,13 +110,13 @@ as_track.Move <- function(x, table = "df", ...) {
 
   if (table == "df") {
     track_df(x = x_df$x, y = x_df$y, t = x_df$time, ...,
-             proj = x@proj4string, tz = lubridate::tz(x_df$time))
+             proj = sf::st_crs(x@proj4string), tz = lubridate::tz(x_df$time))
   } else if (table == "tbl") {
     track_tbl(x = x_df$x, y = x_df$y, t = x_df$time, ...,
-              proj = x@proj4string, tz = lubridate::tz(x_df$time))
+              proj = sf::st_crs(x@proj4string), tz = lubridate::tz(x_df$time))
   } else if (table == "dt") {
     track_dt(x = x_df$x, y = x_df$y, t = x_df$time, ...,
-             proj = x@proj4string, tz = lubridate::tz(x_df$time))
+             proj = sf::st_crs(x@proj4string), tz = lubridate::tz(x_df$time))
   } else {
     stop("Invalid table type.")
   }
@@ -133,8 +136,8 @@ as_move.track <- function(x, ...) {
   if (n_dims(x) > 2)
     warning("move objects are 2D only. The 3rd dimension will be stripped away.")
 
-  moveVis::df2move(x, proj = projection(x), x = "x", y = "y", time = "t",
-                   track_id = "id", ...)
+  moveVis::df2move(x, proj = projection(x)$proj4string, x = "x", y = "y",
+                   time = "t", track_id = "id", ...)
 }
 
 
@@ -148,13 +151,13 @@ as_track.SpatialPointsDataFrame <- function(x, table = "df", ...) {
 
   if (table == "df") {
     track_df(x = x_df$x, y = x_df$y, t = x_df$t, id = x_df$id, ...,
-             proj = x@proj4string, tz = lubridate::tz(x_df$t))
+             proj = sf::st_crs(x@proj4string), tz = lubridate::tz(x_df$t))
   } else if (table == "tbl") {
     track_tbl(x = x_df$x, y = x_df$y, t = x_df$t, id = x_df$id, ...,
-              proj = x@proj4string, tz = lubridate::tz(x_df$t))
+              proj = sf::st_crs(x@proj4string), tz = lubridate::tz(x_df$t))
   } else if (table == "dt") {
     track_dt(x = x_df$x, y = x_df$y, t = x_df$t, id = x_df$id, ...,
-             proj = x@proj4string, tz = lubridate::tz(x_df$t))
+             proj = sf::st_crs(x@proj4string), tz = lubridate::tz(x_df$t))
   } else {
     stop("Invalid table type.")
   }
@@ -175,7 +178,7 @@ as_sp.track <- function(x, ...) {
     warning("sp objects are 2D only. The 3rd dimension will be stripped away.")
 
   sp::SpatialPointsDataFrame(coords = x[, c("x", "y")], data = x[, c("id", "t")],
-                             proj4string = attr(x, "proj"), ...)
+                             proj4string = sp::CRS(projection(x)$proj4string), ...)
 }
 
 
@@ -190,13 +193,16 @@ as_track.ltraj <- function(x, table = "df", ...) {
 
   if (table == "df") {
     track_df(x = x_df$x, y = x_df$y, t = x_df$date, id = x_df$id, ...,
-             proj = attr(x, "proj4string"), tz = lubridate::tz(x_df$date))
+             proj = sf::st_crs(attr(x, "proj4string")),
+             tz = lubridate::tz(x_df$date))
   } else if (table == "tbl") {
     track_tbl(x = x_df$x, y = x_df$y, t = x_df$date, id = x_df$id, ...,
-              proj = attr(x, "proj4string"), tz = lubridate::tz(x_df$date))
+              proj = sf::st_crs(attr(x, "proj4string")),
+              tz = lubridate::tz(x_df$date))
   } else if (table == "dt") {
     track_dt(x = x_df$x, y = x_df$y, t = x_df$date, id = x_df$id, ...,
-             proj = attr(x, "proj4string"), tz = lubridate::tz(x_df$date))
+             proj = sf::st_crs(attr(x, "proj4string")),
+             tz = lubridate::tz(x_df$date))
   } else {
     stop("Invalid table type.")
   }
@@ -217,7 +223,7 @@ as_ltraj.track <- function(x, ...) {
     warning("ltraj objects are 2D only. The 3rd dimension will be stripped away.")
 
   adehabitatLT::as.ltraj(xy = x[, c("x", "y")], date = x$t, id = x$id, typeII = TRUE,
-                         proj4string = projection(x), ...)
+                         proj4string = sp::CRS(projection(x)$proj4string), ...)
 }
 
 
@@ -229,13 +235,13 @@ as_ltraj.track <- function(x, ...) {
 as_track.telemetry <- function(x, table = "df", ...) {
   if (table == "df") {
     track_df(x = x$longitude, y = x$latitude, t = x$timestamp, id = x@info$identity,
-             ..., proj = x@info$projection, tz = x@info$timezone)
+             ..., proj = x@info$projection, tz = lubridate::tz(x$timestamp))
   } else if (table == "tbl") {
     track_tbl(x = x$longitude, y = x$latitude, t = x$timestamp, id = x@info$identity,
-              ..., proj = x@info$projection, tz = x@info$timezone)
+              ..., proj = x@info$projection, tz = lubridate::tz(x$timestamp))
   } else if (table == "dt") {
     track_dt(x = x$longitude, y = x$latitude, t = x$timestamp, id = x@info$identity,
-             ..., proj = x@info$projection, tz = x@info$timezone)
+             ..., proj = x@info$projection, tz = lubridate::tz(x$timestamp))
   } else {
     stop("Invalid table type.")
   }
@@ -248,7 +254,7 @@ as_track.list <- function(x, table = "df", ...) {
   if (!all(sapply(x, inherits, what = "telemetry")))
     stop("No applicable method for 'as_track' applied to an object of class 'list'.")
 
-  rbind_track(lapply(x, as_track, table = table, ...))
+  bind_tracks(lapply(x, as_track, table = table, ...))
 }
 
 #' @rdname conversions
@@ -268,7 +274,7 @@ as_telemetry.track <- function(x, ...) {
   if (n_dims(x) > 2)
     warning("telemetry objects are 2D only. The 3rd dimension will be stripped away.")
 
-  proj <- projection(x)@projargs
+  proj <- projection(x)$proj4string
 
   if (grepl("longlat", proj, fixed = TRUE) || grepl("latlong", proj, fixed = TRUE)) {
     proj <- NULL
@@ -327,7 +333,7 @@ as_moveHMM.track <- function(x, ...) {
   if (n_dims(x) > 2)
     warning("telemetry objects are 2D only. The 3rd dimension will be stripped away.")
 
-  if (is.na(projection(x)@projargs)) {
+  if (!is_geo(x)) {
     colnames(x)[colnames(x) == "id"] <- "ID"
     moveHMM::prepData(as.data.frame(x), type = "UTM", LLangle = FALSE)
   } else {

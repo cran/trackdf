@@ -1,38 +1,6 @@
-#' @title Maintain Class After Modification
+#' @importFrom sf st_crs
+#' @importFrom sf sf_project
 #'
-#' @description Copy class and attributes from the original version of an object
-#'  to a modified version.
-#'
-#' @param x The original object, which has a class/attributes to copy
-#'
-#' @param result The modified object, which is / might be missing the class/attributes.
-#'
-#' @return \code{result}, now with class/attributes restored.
-#'
-#' @author Simon Garnier, \email{garnier@@njit.edu}
-.reclass <- function(x, result) {
-  UseMethod('.reclass')
-}
-
-.reclass.default <- function(x, result) {
-  if (inherits(x, "data.table") & !inherits(result, "data.table")) {
-    result <- data.table::as.data.table(result)
-  }
-
-  class(result) <- unique(c(class(x)[[1]], class(result)))
-  attr(result, class(x)[[1]]) <- attr(x, class(x)[[1]])
-  attr(result, "proj") <- attr(x, "proj")
-
-  if (is_track(result)) {
-    result
-  } else {
-    class(result) <- class(result)[2:length(class(result))]
-    attr(result, "proj") <- NULL
-    result
-  }
-}
-
-
 #' @title Access/Modify the Projection of a Track Table
 #'
 #' @description Functions to access or modify the projection of a data table.
@@ -41,9 +9,9 @@
 #'
 #' @param x A track table.
 #'
-#' @param value A character string or a \code{\link[sp:CRS]{sp::CRS}} object
-#'  representing the projection of the coordinates. \code{"+proj=longlat"} is
-#'  suitable for the outputs of most GPS trackers.
+#' @param value A character string or a \code{\link[terra:crs]{terra::crs}}
+#'  object representing the projection of the coordinates.
+#'  \code{"+proj=longlat"} is suitable for the outputs of most GPS trackers.
 #'
 #' @return A track table.
 #'
@@ -53,10 +21,10 @@
 #' @author Simon Garnier, \email{garnier@@njit.edu}
 #'
 #' @examples
-#' data(tracks)
+#' data(short_tracks)
 #'
-#' projection(tracks)
-#' tracks_projected <- project(tracks, "+proj=somerc")
+#' projection(short_tracks)
+#' tracks_projected <- project(short_tracks, "+proj=somerc")
 #' projection(tracks_projected)
 #' projection(tracks_projected) <- "+proj=longlat"
 #' projection(tracks_projected)
@@ -78,9 +46,9 @@ projection <- function(x) {
     stop("This is not a track_df object.")
 
   if (is.character(value)) {
-    value <- sp::CRS(value)
-  } else if (class(value) != "CRS") {
-    stop("value must be an object of class character or CRS")
+    value <- sf::st_crs(value)
+  } else if (!inherits(value, "crs")) {
+    stop("value must be an object of class character or crs")
   }
 
   if (!is.null(methods::slotNames(attr(x, "proj")))) {
@@ -89,11 +57,8 @@ projection <- function(x) {
     if (sum(stats::complete.cases(tmp)) < nrow(tmp))
       stop("The projection cannot be modified when missing coordinates are present.")
 
-    sp::coordinates(tmp) <- c("x", "y")
-    sp::proj4string(tmp) <- attr(x, "proj")
-    tmp <- sp::spTransform(tmp, value)
-
-    x[, c("x", "y")] <- tibble::as_tibble(tmp)
+    tmp <- sf::sf_project(sf::st_crs(attr(x, "proj")), value, tmp)
+    x[, c("x", "y")] <- tmp
   }
 
   attr(x, "proj") <- value
@@ -126,16 +91,16 @@ project <- function(x, value) {
 #' @author Simon Garnier, \email{garnier@@njit.edu}
 #'
 #' @examples
-#' data(tracks)
+#' data(short_tracks)
 #'
-#' is_geo(tracks)
+#' is_geo(short_tracks)
 #'
 #' @export
 is_geo <- function(x) {
   if (!is_track(x)) {
     stop("This is not a track_df object.")
   } else {
-    !is.na(attr(x, "proj")@projargs)
+    !is.na(attr(x, "proj")$wkt)
   }
 }
 
@@ -153,9 +118,9 @@ is_geo <- function(x) {
 #' @author Simon Garnier, \email{garnier@@njit.edu}
 #'
 #' @examples
-#' data(tracks)
+#' data(short_tracks)
 #'
-#' n_dims(tracks)
+#' n_dims(short_tracks)
 #'
 #' @export
 n_dims <- function(x) {
@@ -180,9 +145,9 @@ n_dims <- function(x) {
 #' @author Simon Garnier, \email{garnier@@njit.edu}
 #'
 #' @examples
-#' data(tracks)
+#' data(short_tracks)
 #'
-#' n_tracks(tracks)
+#' n_tracks(short_tracks)
 #'
 #' @export
 n_tracks <- function(x) {
@@ -191,4 +156,27 @@ n_tracks <- function(x) {
   } else {
     length(unique(x$id))
   }
+}
+
+
+#' @title Compute The Mode(s) Of A Discrete Distribution
+#'
+#' @description This is an internal utility function to compute the mode(s) of
+#'  a discrete distribution.
+#'
+#' @param x A vector or matrix of discrete values.
+#'
+#' @param na.rm A logical value indicating whether NA values should be stripped
+#'  before the computation proceeds (default: TRUE).
+#'
+#' @return A vector of values corresponding to the mode(s) of x.
+#'
+#' @author Simon Garnier, \email{garnier@@njit.edu}
+.Mode <- function(x, na.rm = TRUE) {
+  if (na.rm) {
+    x <- x[!is.na(x)]
+  }
+  ux <- unique(x)
+  tab <- tabulate(match(x, ux))
+  ux[tab == max(tab)]
 }

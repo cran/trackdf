@@ -104,7 +104,7 @@ if (requireNamespace("dplyr", quietly = TRUE)) {
 #    t_df2 <- t_df[t_df$id == "2", ]
 #  }
 #  
-#  head(rbind_track(t_df1, t_df2))
+#  head(bind_tracks(t_df1, t_df2))
 
 ## ----paged.print=FALSE, eval=FALSE--------------------------------------------
 #  if (requireNamespace("dplyr", quietly = TRUE)) {
@@ -115,7 +115,7 @@ if (requireNamespace("dplyr", quietly = TRUE)) {
 #    t_tbl2 <- t_tbl[t_tbl$id == "2", ]
 #  }
 #  
-#  rbind_track(t_tbl1, t_tbl2)
+#  bind_tracks(t_tbl1, t_tbl2)
 
 ## ----paged.print=FALSE, eval=FALSE--------------------------------------------
 #  if (requireNamespace("dplyr", quietly = TRUE)) {
@@ -126,7 +126,7 @@ if (requireNamespace("dplyr", quietly = TRUE)) {
 #    t_dt2 <- t_dt[t_dt$id == "2", ]
 #  }
 #  
-#  rbind_track(t_dt1, t_dt2)
+#  bind_tracks(t_dt1, t_dt2)
 
 ## -----------------------------------------------------------------------------
 plot(y ~ x, data = t_dt[t_dt$id == "1"], type = "l", col = "red", 
@@ -135,7 +135,8 @@ lines(y ~ x , data = t_dt[t_dt$id == "2"], col = "blue",  lwd = 2)
 
 ## -----------------------------------------------------------------------------
 if (requireNamespace("ggplot2", quietly = TRUE)) {
-  ggplot2::ggplot(data = t_dt, mapping = ggplot2::aes(x = x, y = y, color = id)) +
+  ggplot2::ggplot(data = t_dt) +
+    ggplot2::aes(x = x, y = y, color = id) + 
     ggplot2::geom_path() +
     ggplot2::coord_map()
 } 
