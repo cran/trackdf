@@ -1,8 +1,8 @@
 Package: trackdf
 Type: Package
 Title: Data Frame Class for Tracking Data
-Version: 0.3.0
-Date: 2023-01-10
+Version: 0.3.1
+Date: 2023-01-22
 Authors@R: c(
     person("Simon", "Garnier", email = "garnier@njit.edu", role = c("aut", "cre"),
       comment = c(ORCID = "0000-0002-3886-3974"))
@@ -15,18 +15,18 @@ License: GPL-3
 Encoding: UTF-8
 LazyData: true
 RoxygenNote: 7.2.3
-Depends: R (>= 3.5.0), sf
-Imports: tibble, data.table, lubridate, methods
-Suggests: readr, dplyr, ggplot2, mapproj, knitr, rmarkdown,
-        adehabitatLT, move, moveVis, ctmm, moveHMM, sp, terra, covr,
-        testthat (>= 3.0.0)
+Depends: R (>= 3.5.0)
+Imports: sf, tibble, data.table, lubridate, methods, dplyr
+Suggests: readr, ggplot2, mapproj, knitr, rmarkdown, adehabitatLT,
+        move, moveVis, ctmm, moveHMM, sp, terra, covr, testthat (>=
+        3.0.0)
 VignetteBuilder: knitr
 URL: https://swarm-lab.github.io/trackdf/,
         https://github.com/swarm-lab/trackdf
 BugReports: https://github.com/swarm-lab/trackdf/issues
 Config/testthat/edition: 3
 NeedsCompilation: no
-Packaged: 2023-01-10 21:27:27 UTC; simon
+Packaged: 2023-01-23 00:27:49 UTC; simon
 Author: Simon Garnier [aut, cre] (<https://orcid.org/0000-0002-3886-3974>)
 Repository: CRAN
-Date/Publication: 2023-01-10 21:40:02 UTC
+Date/Publication: 2023-01-23 00:50:02 UTC

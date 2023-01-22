@@ -120,8 +120,8 @@
 #'  \code{period} below.
 #'
 #' @param id A vector that can be coerced to a character vector by
-#'  \code{\link{as.character}} representing the identity of the animal to which
-#'  each location belong.
+#'  \code{\link{as.character}} representing the identity of the individual to
+#'  which each location belong.
 #'
 #' @param ... A set of name-value pairs. Arguments are evaluated sequentially,
 #'  so you can refer to previously created elements. These arguments are
@@ -129,10 +129,11 @@
 #'  unquote via \code{!!} and unquote-splice via \code{!!!}. Use \code{:=} to
 #'  create columns that start with a dot.
 #'
-#' @param proj A character string or a \code{\link[terra:crs]{terra::crs}}
-#'  object representing the projection of the coordinates. Leave empty if the
-#'  coordinates are not projected (e.g., output of video tracking).
-#'  \code{"+proj=longlat"} is suitable for the output of most GPS trackers.
+#' @param proj A character string or a \code{crs} object (see
+#'  \code{\link[sf]{st_crs}} for more information) representing the projection
+#'  of the coordinates. Leave empty if the coordinates are not projected (e.g.,
+#'  output of video tracking). \code{"+proj=longlat"} is suitable for the output
+#'  of most GPS trackers.
 #'
 #' @param origin Something that can be coerced to a date-time object by
 #'  \code{\link[lubridate]{as_datetime}} representing the start date and time of
@@ -209,6 +210,7 @@ track_df <- function(x, y, z, t, id, ..., proj, origin, period, tz, format) {
   }
 
   attr(out, "proj") <- l$proj
+  attr(out, "type") <- "data.frame"
   class(out) <- c("track", class(out))
   out
 }
@@ -229,6 +231,7 @@ track_tbl <- function(x, y, z, t, id, ..., proj, origin, period, tz, format) {
   }
 
   attr(out, "proj") <- l$proj
+  attr(out, "type") <- "tbl"
   class(out) <- c("track", class(out))
   out
 }
@@ -249,6 +252,7 @@ track_dt <- function(x, y, z, t, id, ..., proj, origin, period, tz, format) {
   }
 
   attr(out, "proj") <- l$proj
+  attr(out, "type") <- "data.table"
   class(out) <- c("track", class(out))
   out
 }
@@ -275,9 +279,10 @@ track_dt <- function(x, y, z, t, id, ..., proj, origin, period, tz, format) {
 #'
 #' @export
 is_track <- function(x) {
-  any(class(x) == "track") &
+  inherits(x, "track") &
     all(c("id", "t", "x", "y") %in% names(x)) &
-    !is.null(attr(x, "proj"))
+    !is.null(attr(x, "proj")) &
+    !is.null(attr(x, "type"))
 }
 
 
@@ -298,8 +303,9 @@ print.track <- function(x, ...) {
     cat("Geographic: ", geo, "\n")
     if (geo)
       cat("Projection: ", attr(x, "proj")$input, "\n")
-    cat("Table class: ", ifelse("data.table" %in% class(x), "data table",
-                                ifelse("tbl" %in% class(x), "tibble", "data frame")))
+    cat("Table class: ", ifelse("data.table" %in% class(x), "data table ('data.table')",
+                                ifelse("tbl" %in% class(x), "tibble ('tbl_df')",
+                                       "data frame ('data.frame')")))
     cat("\n")
 
     if (any(c("tbl", "data.table") %in% class(x))) {
@@ -383,13 +389,15 @@ print.track <- function(x, ...) {
 #' @title Bind Multiple Track Tables by Row
 #'
 #' @description {bind_tracks} uses \code{\link[data.table:rbindlist]{data.table::rbindlist}}
-#'  to combine track tables by rows, but makes sure that you cannot bind together
-#'  two tables with different projections, that the projection attribute is
-#'  inherited by the resulting track table, and that track tables based on
-#'  different table classes are coerced to the same table class.
+#'  to combine track tables by rows, but makes sure that you cannot bind
+#'  together two tables with different projections or time zones, that the
+#'  projection attribute is inherited by the resulting track table, and that
+#'  track tables based on different table classes are coerced to the same table
+#'  class.
 #'
-#' @param ... Track tables to combine. Each argument can either be a track table
-#'  or a list of track tables. The track tables must have the same projection.
+#' @param ... A list containing track table objects, or the names of track table
+#'  objects separated by commas. The track tables must have the same projection
+#'  and time zone.
 #'
 #' @return A track table.
 #'
@@ -421,7 +429,14 @@ bind_tracks <- function(...) {
   proj <- lapply(df_list, attr, "proj")
 
   if (length(unique(proj)) > 1)
-    stop("All elements should have the same projection.")
+    stop("All track tables should have the same projection.")
+
+  tz <- lapply(df_list, function(tt) {
+    lubridate::tz(tt$t)
+  })
+
+  if (length(unique(tz)) > 1)
+    stop("All  track tables should have the same time zone.")
 
   df_list <- lapply(df_list, function(x) {
     class(x) <- class(x)[class(x) != "track"]
@@ -438,5 +453,6 @@ bind_tracks <- function(...) {
 
   class(out) <- c("track", class(out))
   attr(out, "proj") <- proj[[1]]
+  attr(out, "type") <- attr(df_list[[1]], "type")
   out
 }
