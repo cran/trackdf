@@ -349,12 +349,12 @@ few functions to help detect this missing or erroneous data so that you
 can fix them or omit them altogether from your analysis.</p>
 <p>But first, let’s load some “flawed” data provided with
 <code>trackdf</code>:</p>
-<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(trackdf)</span>
-<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>raw <span class="ot">&lt;-</span> <span class="fu">read.csv</span>(<span class="fu">system.file</span>(<span class="st">&quot;extdata/gps/01.csv&quot;</span>, <span class="at">package =</span> <span class="st">&quot;trackdf&quot;</span>))</span>
-<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>tt <span class="ot">&lt;-</span> <span class="fu">track</span>(<span class="at">x =</span> raw<span class="sc">$</span>lon, <span class="at">y =</span> raw<span class="sc">$</span>lat, <span class="at">t =</span> <span class="fu">paste</span>(raw<span class="sc">$</span>date, raw<span class="sc">$</span>time), <span class="at">id =</span> <span class="dv">1</span>,  </span>
-<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>            <span class="at">proj =</span> <span class="st">&quot;+proj=longlat&quot;</span>, <span class="at">tz =</span> <span class="st">&quot;Africa/Windhoek&quot;</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" tabindex="-1"></a><span class="fu">library</span>(trackdf)</span>
+<span id="cb1-2"><a href="#cb1-2" tabindex="-1"></a>raw <span class="ot">&lt;-</span> <span class="fu">read.csv</span>(<span class="fu">system.file</span>(<span class="st">&quot;extdata/gps/01.csv&quot;</span>, <span class="at">package =</span> <span class="st">&quot;trackdf&quot;</span>))</span>
+<span id="cb1-3"><a href="#cb1-3" tabindex="-1"></a>tt <span class="ot">&lt;-</span> <span class="fu">track</span>(<span class="at">x =</span> raw<span class="sc">$</span>lon, <span class="at">y =</span> raw<span class="sc">$</span>lat, <span class="at">t =</span> <span class="fu">paste</span>(raw<span class="sc">$</span>date, raw<span class="sc">$</span>time), <span class="at">id =</span> <span class="dv">1</span>,  </span>
+<span id="cb1-4"><a href="#cb1-4" tabindex="-1"></a>            <span class="at">proj =</span> <span class="st">&quot;+proj=longlat&quot;</span>, <span class="at">tz =</span> <span class="st">&quot;Africa/Windhoek&quot;</span>)</span></code></pre></div>
 <pre><code>## Warning: 1 failed to parse.</code></pre>
-<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(tt, <span class="at">max =</span> <span class="dv">10</span> <span class="sc">*</span> <span class="fu">ncol</span>(tt))</span></code></pre></div>
+<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" tabindex="-1"></a><span class="fu">print</span>(tt, <span class="at">max =</span> <span class="dv">10</span> <span class="sc">*</span> <span class="fu">ncol</span>(tt))</span></code></pre></div>
 <pre><code>## Track table [3599 observations]
 ## Number of tracks:  1 
 ## Dimensions:  2D 
@@ -380,8 +380,8 @@ can fix them or omit them altogether from your analysis.</p>
 data is recorded at regular intervals, then these missing observations
 can be easily detected using the <code>missing_data</code> function as
 follows:</p>
-<div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>missing <span class="ot">&lt;-</span> <span class="fu">missing_data</span>(tt)</span>
-<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>missing</span></code></pre></div>
+<div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" tabindex="-1"></a>missing <span class="ot">&lt;-</span> <span class="fu">missing_data</span>(tt)</span>
+<span id="cb5-2"><a href="#cb5-2" tabindex="-1"></a>missing</span></code></pre></div>
 <pre><code>## Track table [5 observations]
 ## Number of tracks:  1 
 ## Dimensions:  2D 
@@ -408,8 +408,8 @@ successive observations.</p>
 the data set (e.g., two observations with identical time stamps for a
 given individual). These duplicated observations can be detected using
 the <code>duplicated_data</code> function as follows:</p>
-<div class="sourceCode" id="cb7"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>dups <span class="ot">&lt;-</span> <span class="fu">duplicated_data</span>(tt, <span class="at">type =</span> <span class="st">&quot;t&quot;</span>)</span>
-<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>dups</span></code></pre></div>
+<div class="sourceCode" id="cb7"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" tabindex="-1"></a>dups <span class="ot">&lt;-</span> <span class="fu">duplicated_data</span>(tt, <span class="at">type =</span> <span class="st">&quot;t&quot;</span>)</span>
+<span id="cb7-2"><a href="#cb7-2" tabindex="-1"></a>dups</span></code></pre></div>
 <pre><code>## Track table [1 observations]
 ## Number of tracks:  1 
 ## Dimensions:  2D 
@@ -434,8 +434,8 @@ x and y coordinates.</p>
 surrounding (timewise) observations, for instance, because of sporadic
 errors in GPS recordings. These inconsistent observations can be
 detected using the <code>duplicated_data</code> function as follows:</p>
-<div class="sourceCode" id="cb9"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>inconsistent <span class="ot">&lt;-</span> <span class="fu">inconsistent_data</span>(tt, <span class="at">s =</span> <span class="dv">15</span>)</span>
-<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>inconsistent</span></code></pre></div>
+<div class="sourceCode" id="cb9"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" tabindex="-1"></a>inconsistent <span class="ot">&lt;-</span> <span class="fu">inconsistent_data</span>(tt, <span class="at">s =</span> <span class="dv">15</span>)</span>
+<span id="cb9-2"><a href="#cb9-2" tabindex="-1"></a>inconsistent</span></code></pre></div>
 <pre><code>## Track table [1 observations]
 ## Number of tracks:  1 
 ## Dimensions:  2D 
